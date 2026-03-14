@@ -1,0 +1,36 @@
+name: c-capnproto CI (Linux)
+
+on:
+  push:
+    branches: [rs500-no-xor]
+  pull_request:
+    branches: [rs500-no-xor]
+
+jobs:
+  linux-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+
+      - name: Build library
+        run: |
+          cd lib
+          gcc -std=c11 -Wall -Wextra -Werror -c capnp_c.c -o capnp_c.o
+          ar rcs libcapnp_c.a capnp_c.o
+          echo "Library built successfully"
+          ls -la libcapnp_c.a
+
+      - name: Build compiler
+        run: |
+          cd compiler
+          gcc -std=c11 -Wall -Wextra -I../lib -c capnpc-c.c -o capnpc-c.o
+          echo "Compiler object built successfully"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: c-capnproto-linux-x64
+          path: lib/libcapnp_c.a
